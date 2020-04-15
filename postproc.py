@@ -6,8 +6,7 @@ from pathlib import Path
 import nbformat
 
 
-PREFIX_SOL = "##sol\n"
-PREFIX_NOSOL = "##nosol\n"
+MAGIC_PREFIX = "##"
 
 
 def load_notebook(nbfile):
@@ -21,17 +20,26 @@ def save_notebook(nb, nbfile):
 def process_notebook(nb):
     nb_nosol = nbformat.v4.new_notebook()
     nb_sol = nbformat.v4.new_notebook()
+    txt_sol = []
+    for nnb in (nb_nosol, nb_sol):
+        nnb.metadata.language_info = nb.metadata.language_info
     for cell in nb.cells:
-        if cell.cell_type == "code" and cell.source.startswith(PREFIX_SOL):
-            cell.source = cell.source.lstrip(PREFIX_SOL)
-            nb_sol.cells.append(cell)
-        elif cell.cell_type == "code" and cell.source.startswith(PREFIX_NOSOL):
-            cell.source = cell.source.lstrip(PREFIX_NOSOL)
-            nb_nosol.cells.append(cell)
-        else:
-            nb_nosol.cells.append(cell)
-            nb_sol.cells.append(cell)
-    return nb_nosol, nb_sol
+        write_to = [nb_nosol, nb_sol]
+        if cell.cell_type == "code" and cell.source.startswith(MAGIC_PREFIX):
+            magic, _, cell.source = cell.source.partition("\n")
+            magic = magic[len(MAGIC_PREFIX):].split(":")
+            if magic[0] == "sol":
+                write_to = [nb_sol]
+                if len(magic) > 1:
+                    txt_sol.append("# {}\n{}".format(magic[1], cell.source))
+            elif magic[0] == "nosol":
+                write_to = [nb_nosol]
+            elif magic[0] == "solhead":
+                write_to = []
+                txt_sol.append("# {}".format(magic[1]))
+        for dnb in write_to:
+            dnb.cells.append(cell)
+    return nb_nosol, nb_sol, "\n\n".join(txt_sol)
 
 def main():
     from argparse import ArgumentParser
@@ -43,9 +51,10 @@ def main():
     nosol_path = input_path.parent / (base_file_name + ".nosol.ipynb")
     sol_path = input_path.parent / (base_file_name + ".sol.ipynb")
     input_nb = load_notebook(input_path)
-    nosol_nb, sol_nb = process_notebook(input_nb)
+    nosol_nb, sol_nb, sol_txt = process_notebook(input_nb)
     save_notebook(nosol_nb, nosol_path)
     save_notebook(sol_nb, sol_path)
+    print(sol_txt)
 
 
 if __name__ == "__main__":
