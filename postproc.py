@@ -31,13 +31,14 @@ def process_notebook(nb):
             if magic[0] == "sol":
                 write_to = [nb_sol]
                 if len(magic) > 1:
-                    txt_sol.append("# {}".format(magic[1]))
-                txt_sol.append(cell.source)
+                    txt_sol.append("# {}\n{}".format(magic[1], cell.source))
+                else:
+                    txt_sol.append(cell.source)
             elif magic[0] == "nosol":
                 write_to = [nb_nosol]
             elif magic[0] == "solhead":
                 write_to = []
-                txt_sol.append("# {}".format(magic[1]))
+                txt_sol.append("{}# {}".format("\n" if txt_sol else "", magic[1]))
         for dnb in write_to:
             dnb.cells.append(cell)
     return nb_nosol, nb_sol, "\n\n".join(txt_sol)
@@ -53,8 +54,8 @@ def main():
     sol_path = input_path.parent / (base_file_name + ".sol.ipynb")
     input_nb = load_notebook(input_path)
     nosol_nb, sol_nb, sol_txt = process_notebook(input_nb)
-    save_notebook(nosol_nb, nosol_path)
-    save_notebook(sol_nb, sol_path)
+    #save_notebook(nosol_nb, nosol_path)
+    #save_notebook(sol_nb, sol_path)
     print(sol_txt)
 
 
