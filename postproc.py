@@ -31,7 +31,8 @@ def process_notebook(nb):
             if magic[0] == "sol":
                 write_to = [nb_sol]
                 if len(magic) > 1:
-                    txt_sol.append("# {}\n{}".format(magic[1], cell.source))
+                    txt_sol.append("# {}".format(magic[1]))
+                txt_sol.append(cell.source)
             elif magic[0] == "nosol":
                 write_to = [nb_nosol]
             elif magic[0] == "solhead":
