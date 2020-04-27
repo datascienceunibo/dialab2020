@@ -54,8 +54,8 @@ def main():
     sol_path = input_path.parent / (base_file_name + ".sol.ipynb")
     input_nb = load_notebook(input_path)
     nosol_nb, sol_nb, sol_txt = process_notebook(input_nb)
-    #save_notebook(nosol_nb, nosol_path)
-    #save_notebook(sol_nb, sol_path)
+    save_notebook(nosol_nb, nosol_path)
+    save_notebook(sol_nb, sol_path)
     print(sol_txt)
 
 
