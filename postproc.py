@@ -39,6 +39,13 @@ def process_notebook(nb):
             elif magic[0] == "solhead":
                 write_to = []
                 txt_sol.append("{}# {}".format("\n" if txt_sol else "", magic[1]))
+            elif magic[0] == "outsnip":
+                write_to = [nb_nosol, nb_sol]
+                for cout in cell.outputs:
+                    if cout.name == "stdout" and cout.output_type == "stream":
+                        lines = cout.text.split("\n")
+                        new_lines = lines[:int(magic[1])] + ["[...]"] + lines[-int(magic[2]):]
+                        cout.text = "\n".join(new_lines)
         for dnb in write_to:
             dnb.cells.append(cell)
     return nb_nosol, nb_sol, "\n\n".join(txt_sol)
